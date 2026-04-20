@@ -1,22 +1,22 @@
-import type { CategoryItem } from '@narcissus/shared';
+import type { CategoryItem, TagItem } from '@narcissus/shared';
 import { Link } from 'react-router-dom';
 
 import styles from './sidebar-panel.module.css';
 
 interface SidebarPanelProps {
   categories: CategoryItem[];
+  tags: TagItem[];
 }
 
-export function SidebarPanel({ categories }: SidebarPanelProps) {
+export function SidebarPanel({ categories, tags }: SidebarPanelProps) {
   // 按文章数量排序分类
   const sortedCategories = [...categories].sort((a, b) => (b.articleCount || 0) - (a.articleCount || 0));
+  // 按文章数量排序标签
+  const sortedTags = [...tags].sort((a, b) => (b.articleCount || 0) - (a.articleCount || 0));
+  const visibleTags = sortedTags.slice(0, 20);
   
   return (
     <aside className={styles.aside}>
-      <section className={styles.card}>
-        <h3 className={styles.title}>关于我</h3>
-        <p className={styles.text}>Narcissus，记录前端、服务端与 AI 学习实践。</p>
-      </section>
       <section className={styles.card}>
         <h3 className={styles.title}>分类</h3>
         <div className={styles.list}>
@@ -26,6 +26,23 @@ export function SidebarPanel({ categories }: SidebarPanelProps) {
             </Link>
           ))}
         </div>
+      </section>
+      <section className={styles.card}>
+        <h3 className={styles.title}>标签</h3>
+        <div className={styles.list}>
+          {visibleTags.map((item) => (
+            <Link key={item.id} className={styles.pill} to={`/tags/${item.slug}`}>
+              #{item.name} ({item.articleCount || 0})
+            </Link>
+          ))}
+        </div>
+        {sortedTags.length > 20 ? (
+          <div className={styles.moreWrap}>
+            <Link className={styles.moreLink} to="/tags">
+              查看更多标签
+            </Link>
+          </div>
+        ) : null}
       </section>
       <section className={styles.card}>
         <h3 className={styles.title}>热门文章</h3>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import styles from './home-page.module.css';
 
@@ -24,6 +24,10 @@ export function HomePage() {
     queryKey: ['public-categories'],
     queryFn: taxonomyService.getPublicCategories,
   });
+  const { data: tags = [] } = useQuery({
+    queryKey: ['public-tags'],
+    queryFn: taxonomyService.getPublicTags,
+  });
 
   const categoryBarItems = useMemo(
     () =>
@@ -32,21 +36,6 @@ export function HomePage() {
   );
 
   const featuredArticle = articleResult?.list[0];
-
-  // 检查文章是否未读
-  const checkIsUnread = (articleId: string): boolean => {
-    const readArticles = localStorage.getItem('readArticles');
-    if (!readArticles) return true;
-    const readArticleIds = JSON.parse(readArticles);
-    return !readArticleIds.includes(articleId);
-  };
-
-  // 检查文章是否为新文章（7天内发布）
-  const checkIsNew = (publishedAt: string | Date): boolean => {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    return new Date(publishedAt) > sevenDaysAgo;
-  };
 
   return (
     <div className={styles.container}>
@@ -61,11 +50,8 @@ export function HomePage() {
           ) : null}
           <div className={styles.grid}>
             {articleResult?.list.map((item, index) => {
-              // 计算封面位置（交替布局）
-              const coverPosition = item.coverUrl ? (index % 2 === 0 ? 'left' : 'right') : 'none';
-              
               return (
-                <React.Fragment key={item.id}>
+                <div key={item.id}>
                   {/* 每3篇文章后插入广告 */}
                   {index > 0 && index % 3 === 0 && (
                     <div className={styles.adSlot}>
@@ -75,15 +61,8 @@ export function HomePage() {
                       </div>
                     </div>
                   )}
-                  <PostCard 
-                    item={item} 
-                    coverPosition={coverPosition}
-                    isSticky={(item as any).isSticky || false}
-                    isNew={checkIsNew(item.publishedAt || item.createdAt)}
-                    isUnread={checkIsUnread(item.id)}
-                    commentCount={(item as any).commentCount || 0}
-                  />
-                </React.Fragment>
+                  <PostCard item={item} />
+                </div>
               );
             })}
           </div>
@@ -99,7 +78,7 @@ export function HomePage() {
             />
           </div>
         </section>
-        <SidebarPanel categories={categories} />
+        <SidebarPanel categories={categories} tags={tags} />
       </div>
     </div>
   );

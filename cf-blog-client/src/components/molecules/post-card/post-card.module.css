@@ -17,8 +17,9 @@
 
 .coverLink {
   width: 100%;
-  height: 220px;
+  height: 260px;
   overflow: hidden;
+  background: #0d152f;
 }
 
 .cover {
@@ -35,65 +36,25 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px 16px;
+  gap: 10px;
+  padding: 14px 16px;
 }
 
 .meta {
-  color: var(--second-text);
-  font-size: 0.8rem;
-}
-
-.metaLeft {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.stickyTag {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background-color: #ff6b6b;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-}
-
-.newTag {
-  background-color: #4ecdc4;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-}
-
-.unreadTag {
-  background-color: #45b7d1;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  text-decoration: none;
+  color: var(--second-text);
+  font-size: 0.8rem;
+  min-height: 20px;
 }
 
 .categoryLink {
-  color: var(--second-text);
+  color: #9ca3af;
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
 }
 
 .categoryLink:hover {
-  color: var(--main-color);
-}
-
-.metaLink {
-  color: inherit;
-  text-decoration: none;
-}
-
-.metaLink:hover {
   color: var(--main-color);
 }
 
@@ -103,66 +64,50 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   margin: 0;
-  font-size: 1.1rem;
+  color: var(--font-color);
+  font-size: 1.95rem;
   font-weight: 700;
-  line-height: 1.5;
-}
-
-.excerpt {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  margin: 0;
-  color: var(--second-text);
-  line-height: 1.6;
+  line-height: 1.25;
+  text-decoration: none;
 }
 
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   color: var(--second-text);
-  font-size: 0.8rem;
-  margin-top: 8px;
-}
-
-.footerLeft {
-  display: flex;
-  gap: 16px;
-  align-items: center;
+  font-size: 0.92rem;
+  margin-top: 10px;
+  padding-top: 8px;
 }
 
 .date {
-  font-size: 0.8rem;
-}
-
-.commentLink {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--second-text);
-  text-decoration: none;
-  font-size: 0.8rem;
-}
-
-.commentLink:hover {
-  color: var(--main-color);
+  flex-shrink: 0;
+  color: #e5e7eb;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .tagWrap {
   display: flex;
   align-items: center;
   gap: 6px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tagWrap::-webkit-scrollbar {
+  display: none;
 }
 
 .tagLink {
   color: var(--second-text);
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .tagLink:hover {
@@ -171,56 +116,20 @@
 
 .noTag {
   color: var(--third-text);
-  font-size: 0.8rem;
-}
-
-/* 封面交替布局 */
-.coverAlternate {
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
-}
-
-.coverLeft .coverLink {
-  order: 1;
-  flex: 0 0 30%;
-  height: 180px;
-}
-
-.coverLeft .content {
-  order: 2;
-  flex: 1;
-}
-
-.coverRight .coverLink {
-  order: 2;
-  flex: 0 0 30%;
-  height: 180px;
-}
-
-.coverRight .content {
-  order: 1;
-  flex: 1;
+  font-size: 0.9rem;
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .coverAlternate {
-    flex-direction: column;
-    text-align: center;
+  .coverLink {
+    height: 220px;
   }
-  
-  .coverLeft .coverLink,
-  .coverRight .coverLink {
-    order: 1;
-    flex: 0 0 auto;
-    width: 100%;
-    height: 200px;
+
+  .title {
+    font-size: 1.48rem;
   }
-  
-  .coverLeft .content,
-  .coverRight .content {
-    order: 2;
-    flex: 1;
+
+  .footer {
+    font-size: 0.86rem;
   }
 }

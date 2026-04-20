@@ -18,11 +18,6 @@
   font-size: 1rem;
 }
 
-.text {
-  margin: 0;
-  color: var(--second-text);
-}
-
 .list {
   display: flex;
   flex-wrap: wrap;
@@ -40,6 +35,22 @@
 
 .pill:hover {
   background: rgba(66, 90, 239, 0.2);
+}
+
+.moreWrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.moreLink {
+  font-size: 0.82rem;
+  color: var(--main-color);
+  text-decoration: none;
+}
+
+.moreLink:hover {
+  text-decoration: underline;
 }
 
 /* 热门文章 */
