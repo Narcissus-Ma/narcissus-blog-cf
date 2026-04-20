@@ -82,7 +82,8 @@ export const ArticleEditorForm = forwardRef<ArticleEditorFormRef, ArticleEditorF
     useImperativeHandle(ref, () => ({ submit: () => form.submit() }), [form]);
 
     useEffect(() => {
-      if (!syncKey) {
+      // 编辑页有些后端实现不会返回 updatedAt，不能仅依赖 syncKey 触发回填。
+      if (!syncKey && !syncValues && syncContent === undefined) {
         return;
       }
 

@@ -514,7 +514,7 @@ async function handleRequest(request, env) {
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Credentials': 'true'
       }
@@ -540,7 +540,7 @@ async function handleRequest(request, env) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'Access-Control-Allow-Credentials': 'true'
           }
@@ -558,7 +558,7 @@ async function handleRequest(request, env) {
       }
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -569,7 +569,7 @@ async function handleRequest(request, env) {
       const response = await handleCategories(request, path, method, runtimeEnv);
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -580,7 +580,7 @@ async function handleRequest(request, env) {
       const response = await handleTags(request, path, method, runtimeEnv);
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -591,7 +591,7 @@ async function handleRequest(request, env) {
       const response = await handleAuth(request, path, method, runtimeEnv);
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -602,7 +602,7 @@ async function handleRequest(request, env) {
       const response = await handleSiteSettings(request, path, method, runtimeEnv);
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -613,7 +613,7 @@ async function handleRequest(request, env) {
       const response = await handleBackup(request, path, method, runtimeEnv);
       // 添加 CORS 头部
       response.headers.set('Access-Control-Allow-Origin', '*');
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       return response;
@@ -624,7 +624,7 @@ async function handleRequest(request, env) {
   const response = await handleStatic(request);
   // 添加 CORS 头部
   response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
   return response;
@@ -671,6 +671,7 @@ async function handleArticles(request, path, method, env) {
         headers: { 'Content-Type': 'application/json' }
       });
     case 'PUT':
+    case 'PATCH':
       if (id && !isNaN(id)) {
         const updateData = await request.json();
         const updatedArticle = await updateArticle(id, updateData, env);

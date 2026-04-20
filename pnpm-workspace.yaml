@@ -1,0 +1,3 @@
+packages:
+  - "cf-blog-client"
+  - "cf-blog-server"
