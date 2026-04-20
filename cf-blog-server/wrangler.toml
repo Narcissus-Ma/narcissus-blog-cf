@@ -1,0 +1,26 @@
+name = "narcissus-blog"
+account_id = "test-account"
+workers_dev = true
+compatibility_date = "2026-04-17"
+main = "src/index.js"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "test-kv-namespace"
+preview_id = "test-kv-namespace"
+
+[env.development]
+env = "development"
+
+[env.development.vars]
+SECRET_KEY = "test-secret-key"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
+
+[env.production]
+env = "production"
+
+[env.production.vars]
+SECRET_KEY = "production-secret-key"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"

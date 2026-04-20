@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.meta h1 {
+  margin: 0;
+}
+
+.meta p {
+  margin: 6px 0 0;
+  color: var(--second-text);
+}
+
+@media (max-width: 992px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

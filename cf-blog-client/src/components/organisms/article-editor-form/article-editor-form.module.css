@@ -1,0 +1,38 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tabs :global(.ant-tabs-nav) {
+  margin-bottom: 8px;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.editorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editorLabel {
+  color: var(--main-text);
+  font-size: 14px;
+}
+
+@media (max-width: 992px) {
+  .grid2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

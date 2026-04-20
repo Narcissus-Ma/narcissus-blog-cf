@@ -1,0 +1,28 @@
+.page {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  padding: 16px;
+}
+
+.title {
+  margin: 0 0 14px;
+}
+
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border-radius: 20px;
+  background: rgba(66, 90, 239, 0.12);
+  padding: 5px 10px;
+  color: var(--font-color);
+  text-decoration: none;
+}
+
+.tag:hover {
+  background: rgba(66, 90, 239, 0.2);
+}

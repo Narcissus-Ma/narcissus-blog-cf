@@ -1,0 +1,17 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  padding: 16px;
+}
+
+.error {
+  color: #ff4d4f;
+  padding: 12px;
+  border: 1px solid #ffccc7;
+  border-radius: 8px;
+  background: #fff2f0;
+}

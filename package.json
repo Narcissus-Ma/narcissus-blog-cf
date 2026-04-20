@@ -1,0 +1,22 @@
+{
+  "name": "cf-blog-project",
+  "version": "1.0.0",
+  "description": "Cloudflare Blog Project",
+  "private": true,
+  "workspaces": [
+    "cf-blog-client",
+    "cf-blog-server"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel dev",
+    "build": "pnpm --parallel build",
+    "lint": "pnpm --parallel lint",
+    "format": "pnpm --parallel format",
+    "typecheck": "pnpm --parallel typecheck"
+  },
+  "packageManager": "pnpm@8.6.12",
+  "devDependencies": {
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  }
+}

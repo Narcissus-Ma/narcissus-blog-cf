@@ -1,0 +1,8 @@
+.editor {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.editor :global(.vditor) {
+  border-color: var(--card-border);
+}

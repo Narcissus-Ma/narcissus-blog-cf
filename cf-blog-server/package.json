@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "cf-blog-server",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers blog backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write '**/*.{js,css,json,md}'",
+    "build": "webpack",
+    "build:watch": "webpack --watch",
+    "dev": "wrangler dev --port 8788",
+    "preview": "wrangler dev",
+    "publish": "wrangler publish"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "webpack": "^5.100.1",
+    "webpack-cli": "^5.1.4",
+    "wrangler": "^3.79.0"
+  },
+  "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.4",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

@@ -1,0 +1,117 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  height: 60px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--card-bg);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--font-color);
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menuItem {
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  color: var(--second-text);
+  transition: all 0.3s ease;
+}
+
+.menuItem:hover,
+.active {
+  color: #fff;
+  background: var(--main-color);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionButton,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-bg) 90%, #fff 10%);
+  color: var(--font-color);
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.actionButton {
+  padding: 0 14px;
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+}
+
+.actionButton:hover,
+.iconButton:hover {
+  border-color: var(--main-color);
+  background: var(--main-color);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.actionButton:disabled,
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.actionButton span {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .menu {
+    display: none;
+  }
+
+  .inner {
+    padding: 0 12px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .actionButton {
+    padding: 0 12px;
+  }
+
+  .actionButton span {
+    display: none;
+  }
+}

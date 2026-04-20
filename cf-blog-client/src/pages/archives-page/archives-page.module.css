@@ -1,0 +1,90 @@
+.page {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  padding: 16px;
+}
+
+.title {
+  margin: 0 0 14px;
+}
+
+.yearSection + .yearSection {
+  margin-top: 14px;
+}
+
+.yearTitle {
+  margin: 0;
+}
+
+.monthGroup {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.monthTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.monthTitle span {
+  color: var(--second-text);
+  font-size: 0.85rem;
+}
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px dashed var(--card-border);
+  padding: 10px 0;
+}
+
+.item span {
+  width: 100px;
+  flex-shrink: 0;
+  color: var(--second-text);
+}
+
+.itemMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.postLink {
+  color: var(--font-color);
+  text-decoration: none;
+}
+
+.postLink:hover {
+  color: var(--main-color);
+}
+
+.itemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metaLink {
+  color: var(--second-text);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.metaLink:hover {
+  color: var(--main-color);
+}

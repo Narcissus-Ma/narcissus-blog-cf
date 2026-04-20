@@ -1,0 +1,64 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.posts {
+  flex: 1;
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adSlot {
+  grid-column: 1 / -1;
+  margin: 30px 0;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed var(--card-border);
+}
+
+.adContent {
+  text-align: center;
+  color: var(--second-text);
+}
+
+.state {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  margin-bottom: 12px;
+  padding: 16px;
+  color: var(--second-text);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+@media (max-width: 1200px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

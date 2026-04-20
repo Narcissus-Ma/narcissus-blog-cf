@@ -1,0 +1,158 @@
+.aside {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-border);
+  padding: 16px;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.text {
+  margin: 0;
+  color: var(--second-text);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  border-radius: 20px;
+  background: rgba(66, 90, 239, 0.12);
+  padding: 4px 10px;
+  color: var(--font-color);
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.pill:hover {
+  background: rgba(66, 90, 239, 0.2);
+}
+
+/* 热门文章 */
+.hotArticleList {
+  margin-top: 12px;
+}
+
+.hotArticleItem {
+  margin-bottom: 12px;
+}
+
+.hotArticleLink {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--font-color);
+  transition: color 0.2s ease;
+}
+
+.hotArticleLink:hover {
+  color: var(--main-color);
+}
+
+.hotArticleRank {
+  flex: 0 0 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--second-text);
+}
+
+.hotArticleRank:nth-child(1) {
+  color: #ff6b6b;
+}
+
+.hotArticleRank:nth-child(2) {
+  color: #4ecdc4;
+}
+
+.hotArticleRank:nth-child(3) {
+  color: #45b7d1;
+}
+
+.hotArticleTitle {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* 最新评论 */
+.commentList {
+  margin-top: 12px;
+}
+
+.commentItem {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.commentAvatar {
+  flex: 0 0 40px;
+}
+
+.commentAvatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.commentContent {
+  flex: 1;
+}
+
+.commentAuthor {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: var(--font-color);
+}
+
+.commentText {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--second-text);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.commentLink {
+  font-size: 12px;
+  color: var(--main-color);
+  text-decoration: none;
+}
+
+.commentLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1200px) {
+  .aside {
+    width: 100%;
+  }
+}

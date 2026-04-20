@@ -1,0 +1,44 @@
+.page {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  padding: 16px;
+}
+
+.title {
+  margin: 0 0 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  color: var(--font-color);
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--main-color);
+}
+
+.card h3 {
+  margin: 0 0 6px;
+}
+
+.card p {
+  margin: 0 0 6px;
+  color: var(--second-text);
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

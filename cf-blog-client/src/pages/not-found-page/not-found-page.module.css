@@ -1,0 +1,11 @@
+.page {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  padding: 20px;
+}
+
+.page a {
+  color: var(--main-color);
+  font-weight: 600;
+}

@@ -1,0 +1,144 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: var(--global-bg);
+}
+
+.sidebar {
+  display: flex;
+  width: 240px;
+  flex-shrink: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--card-border);
+  background: var(--card-bg);
+  padding: 14px 12px;
+}
+
+.sidebarHead {
+  margin-bottom: 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: var(--shadow-border);
+}
+
+.brand {
+  margin-bottom: 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.brandDesc {
+  margin: 0;
+  color: var(--second-text);
+  font-size: 0.8rem;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--second-text);
+  transition: all 0.25s ease;
+}
+
+.menuItem:hover,
+.menuItemActive {
+  background: var(--main-color);
+  color: #fff;
+}
+
+.menuIcon {
+  width: 16px;
+  text-align: center;
+}
+
+.contentWrap {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--card-bg);
+  padding: 10px 16px;
+}
+
+.topbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menuButton {
+  display: none;
+}
+
+.breadcrumb {
+  color: var(--second-text);
+  font-size: 0.9rem;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.topbarRight::-webkit-scrollbar {
+  display: none;
+}
+
+.clock {
+  color: var(--second-text);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.main {
+  padding: 16px;
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .topbarRight {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .clock {
+    display: none;
+  }
+}
