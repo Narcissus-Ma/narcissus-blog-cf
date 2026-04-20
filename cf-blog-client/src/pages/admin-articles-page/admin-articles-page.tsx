@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Popconfirm, Space, Table, message } from 'antd';
+import { Button, Popconfirm, Space, Table, Tag, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import styles from './admin-articles-page.module.css';
@@ -26,6 +26,17 @@ export function AdminArticlesPage() {
     },
   });
 
+  const unpublishMutation = useMutation({
+    mutationFn: (id: string) => articlesService.update(id, { status: 'draft' }),
+    onSuccess: async () => {
+      message.success('文章已取消发布');
+      await queryClient.invalidateQueries({ queryKey: ['admin-articles'] });
+    },
+    onError: () => {
+      message.error('取消发布失败');
+    },
+  });
+
   return (
     <section className={styles.page}>
       <div className={styles.header}>
@@ -45,11 +56,21 @@ export function AdminArticlesPage() {
         columns={[
           { title: '标题', dataIndex: 'title', width: 280 },
           { title: '分类', dataIndex: 'categoryName', width: 120 },
-          { title: '状态', dataIndex: 'status', width: 100 },
+          {
+            title: '状态',
+            dataIndex: 'status',
+            width: 100,
+            render: (status: 'draft' | 'published') =>
+              status === 'published' ? (
+                <Tag color="success">已发布</Tag>
+              ) : (
+                <Tag color="warning">草稿</Tag>
+              ),
+          },
           {
             title: '操作',
-            width: 250,
-            render: (_value, record: { id: string; slug: string }) => (
+            width: 340,
+            render: (_value, record: { id: string; slug: string; status: 'draft' | 'published' }) => (
               <Space>
                 <Button size="small" onClick={() => navigate(`/admin/articles/${record.id}/edit`)}>
                   编辑
@@ -57,6 +78,18 @@ export function AdminArticlesPage() {
                 <Button size="small" onClick={() => window.open(`/post/${record.slug}`, '_blank')}>
                   预览
                 </Button>
+                {record.status === 'published' ? (
+                  <Popconfirm
+                    title="确认取消发布该文章吗？"
+                    okText="确认"
+                    cancelText="取消"
+                    onConfirm={() => unpublishMutation.mutate(record.id)}
+                  >
+                    <Button size="small" loading={unpublishMutation.isPending}>
+                      取消发布
+                    </Button>
+                  </Popconfirm>
+                ) : null}
                 <Popconfirm
                   title="确认删除该文章吗？"
                   okText="删除"

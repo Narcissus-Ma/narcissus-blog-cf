@@ -43,14 +43,18 @@ export function AdminArticleCreatePage() {
     <section className={styles.page}>
       <AdminArticleEditorHeader
         title="新建文章"
-        description="使用 Vditor 编辑 Markdown 内容，完成后可选择草稿或直接发布。"
+        description="使用 Vditor 编辑 Markdown 内容，点击保存默认存草稿，点击发布才会正式发布。"
         submitText="保存文章"
         submitLoading={createMutation.isPending}
+        publishLoading={createMutation.isPending}
         onBack={() => {
           navigate('/admin/articles');
         }}
         onSubmit={() => {
-          formRef.current?.submit();
+          formRef.current?.submit({ status: 'draft' });
+        }}
+        onPublish={() => {
+          formRef.current?.submit({ status: 'published' });
         }}
       />
       <ArticleEditorForm

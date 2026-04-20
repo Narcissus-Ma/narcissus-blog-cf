@@ -1,5 +1,5 @@
 import { Form, Input, Select, Switch, Tabs, message } from 'antd';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import styles from './article-editor-form.module.css';
 
@@ -28,7 +28,7 @@ export interface ArticleEditorSubmitValues extends ArticleEditorFormValues {
 }
 
 export interface ArticleEditorFormRef {
-  submit: () => void;
+  submit: (options?: { status?: ArticleEditorFormValues['status'] }) => void;
 }
 
 interface ArticleEditorFormProps {
@@ -69,6 +69,9 @@ export const ArticleEditorForm = forwardRef<ArticleEditorFormRef, ArticleEditorF
   ) => {
     const [form] = Form.useForm<ArticleEditorFormValues>();
     const [content, setContent] = useState(syncContent ?? '');
+    const submitOptionsRef = useRef<{ status?: ArticleEditorFormValues['status'] } | undefined>(
+      undefined,
+    );
 
     const categoryOptions = useMemo(
       () => categories.map((item) => ({ label: item.name, value: item.id })),
@@ -79,7 +82,16 @@ export const ArticleEditorForm = forwardRef<ArticleEditorFormRef, ArticleEditorF
       [tags],
     );
 
-    useImperativeHandle(ref, () => ({ submit: () => form.submit() }), [form]);
+    useImperativeHandle(
+      ref,
+      () => ({
+        submit: (options) => {
+          submitOptionsRef.current = options;
+          form.submit();
+        },
+      }),
+      [form],
+    );
 
     useEffect(() => {
       // 编辑页有些后端实现不会返回 updatedAt，不能仅依赖 syncKey 触发回填。
@@ -103,8 +115,12 @@ export const ArticleEditorForm = forwardRef<ArticleEditorFormRef, ArticleEditorF
             return;
           }
 
+          const submitStatus = submitOptionsRef.current?.status ?? values.status ?? 'draft';
+          submitOptionsRef.current = undefined;
+
           onSubmit({
             ...values,
+            status: submitStatus,
             content,
           });
         }}
@@ -158,14 +174,6 @@ export const ArticleEditorForm = forwardRef<ArticleEditorFormRef, ArticleEditorF
                     </Form.Item>
                     <Form.Item label="封面图地址" name="coverUrl">
                       <Input placeholder="请输入封面图 URL（可选）" />
-                    </Form.Item>
-                    <Form.Item label="状态" name="status">
-                      <Select
-                        options={[
-                          { label: '草稿', value: 'draft' },
-                          { label: '已发布', value: 'published' },
-                        ]}
-                      />
                     </Form.Item>
                     <Form.Item label="SEO 标题" name="seoTitle">
                       <Input placeholder="请输入 SEO 标题（可选）" />

@@ -87,15 +87,19 @@ export function AdminArticleEditPage() {
     <section className={styles.page}>
       <AdminArticleEditorHeader
         title="编辑文章"
-        description="修改文章内容、状态与 SEO 信息，保存后将回到文章列表。"
-        submitText="保存更新"
+        description="修改文章内容与 SEO 信息，点击更新默认存草稿，点击发布才会正式发布。"
+        submitText="更新文章"
         submitLoading={updateMutation.isPending}
+        publishLoading={updateMutation.isPending}
         previewUrl={detail?.slug ? `/post/${detail.slug}` : undefined}
         onBack={() => {
           navigate('/admin/articles');
         }}
         onSubmit={() => {
-          formRef.current?.submit();
+          formRef.current?.submit({ status: 'draft' });
+        }}
+        onPublish={() => {
+          formRef.current?.submit({ status: 'published' });
         }}
       />
 

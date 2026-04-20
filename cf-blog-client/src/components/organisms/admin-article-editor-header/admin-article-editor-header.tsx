@@ -6,20 +6,26 @@ interface AdminArticleEditorHeaderProps {
   title: string;
   description: string;
   submitText: string;
+  publishText?: string;
   submitLoading?: boolean;
+  publishLoading?: boolean;
   previewUrl?: string;
   onBack: () => void;
   onSubmit: () => void;
+  onPublish: () => void;
 }
 
 export function AdminArticleEditorHeader({
   title,
   description,
   submitText,
+  publishText = '发布文章',
   submitLoading,
+  publishLoading,
   previewUrl,
   onBack,
   onSubmit,
+  onPublish,
 }: AdminArticleEditorHeaderProps) {
   return (
     <div className={styles.header}>
@@ -38,8 +44,11 @@ export function AdminArticleEditorHeader({
             预览文章
           </Button>
         ) : null}
-        <Button type="primary" loading={submitLoading} onClick={onSubmit}>
+        <Button loading={submitLoading} onClick={onSubmit}>
           {submitText}
+        </Button>
+        <Button type="primary" loading={publishLoading} onClick={onPublish}>
+          {publishText}
         </Button>
       </Space>
     </div>
