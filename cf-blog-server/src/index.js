@@ -57,6 +57,15 @@ function generateId() {
   return Date.now().toString() + Math.floor(Math.random() * 10000).toString();
 }
 
+function toSlug(value = '') {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
 // 缓存相关函数
 async function cacheHTML(key, html, env) {
   await env.KV.put(`cache:${key}`, html, {
@@ -102,6 +111,18 @@ async function getArticlesList(page = 1, limit = 10, env) {
   for (const id of articleIds) {
     const article = await env.KV.get(`article:${id}`);
     if (article) {
+      if (article.categoryId && (!article.categoryName || !article.categorySlug)) {
+        const category = await env.KV.get(`category:${article.categoryId}`);
+        if (category) {
+          article.categoryName = category.name || article.categoryName;
+          article.categorySlug = category.slug || article.categorySlug;
+        }
+      }
+      article.tagIds = Array.isArray(article.tagIds)
+        ? article.tagIds
+        : Array.isArray(article.tagItems)
+          ? article.tagItems.map((item) => item.id).filter(Boolean)
+          : [];
       articles.push(article);
     }
   }
@@ -109,18 +130,72 @@ async function getArticlesList(page = 1, limit = 10, env) {
   return articles;
 }
 
+async function resolveCategoryMeta(categoryId, env) {
+  if (!categoryId) {
+    return {
+      categoryName: '',
+      categorySlug: '',
+    };
+  }
+
+  const category = await env.KV.get(`category:${categoryId}`);
+  if (!category) {
+    return {
+      categoryName: '',
+      categorySlug: '',
+    };
+  }
+
+  return {
+    categoryName: category.name || '',
+    categorySlug: category.slug || '',
+  };
+}
+
+async function resolveTagMetaByIds(tagIds, env) {
+  const safeTagIds = Array.isArray(tagIds) ? tagIds.filter(Boolean) : [];
+  const tags = [];
+  const tagItems = [];
+
+  for (const id of safeTagIds) {
+    const tag = await env.KV.get(`tag:${id}`);
+    if (tag) {
+      tags.push(tag.name || id);
+      tagItems.push({
+        id,
+        name: tag.name || id,
+        slug: tag.slug || toSlug(tag.name || id),
+      });
+    }
+  }
+
+  return {
+    tagIds: safeTagIds,
+    tags,
+    tagItems,
+  };
+}
+
+function normalizeArticleTagIds(article) {
+  if (!article) {
+    return article;
+  }
+
+  if (!Array.isArray(article.tagIds)) {
+    article.tagIds = Array.isArray(article.tagItems)
+      ? article.tagItems.map((item) => item.id).filter(Boolean)
+      : [];
+  }
+
+  return article;
+}
+
 async function createArticle(data, env) {
   const id = generateId();
   const now = new Date().toISOString();
   const slug = data.slug || data.title.toLowerCase().replace(/\s+/g, '-');
-  
-  // 转换 tags 为 tagItems 格式
-  const tags = data.tags || [];
-  const tagItems = tags.map(tag => ({
-    id: typeof tag === 'object' ? tag.id : tag,
-    name: typeof tag === 'object' ? tag.name : tag,
-    slug: typeof tag === 'object' ? tag.slug : tag.toLowerCase().replace(/\s+/g, '-')
-  }));
+  const categoryMeta = await resolveCategoryMeta(data.categoryId, env);
+  const tagMeta = await resolveTagMetaByIds(data.tagIds, env);
   
   const article = {
     id,
@@ -132,10 +207,11 @@ async function createArticle(data, env) {
     createDate: now,
     updateDate: now,
     categoryId: data.categoryId,
-    categoryName: data.categoryName,
-    categorySlug: data.categorySlug,
-    tags: tags,
-    tagItems: tagItems,
+    categoryName: data.categoryName || categoryMeta.categoryName,
+    categorySlug: data.categorySlug || categoryMeta.categorySlug,
+    tagIds: tagMeta.tagIds,
+    tags: tagMeta.tags,
+    tagItems: tagMeta.tagItems,
     viewCount: 0,
     status: data.status || 'draft',
     excerpt: data.excerpt || data.content.substring(0, 100) + '...'
@@ -154,22 +230,25 @@ async function updateArticle(id, data, env) {
   if (!article) {
     return null;
   }
-  
-  // 转换 tags 为 tagItems 格式
-  const tags = data.tags || article.tags || [];
-  const tagItems = tags.map(tag => ({
-    id: typeof tag === 'object' ? tag.id : tag,
-    name: typeof tag === 'object' ? tag.name : tag,
-    slug: typeof tag === 'object' ? tag.slug : tag.toLowerCase().replace(/\s+/g, '-')
-  }));
+  const nextCategoryId = data.categoryId ?? article.categoryId;
+  const categoryMeta = await resolveCategoryMeta(nextCategoryId, env);
+  const nextTagIds = Array.isArray(data.tagIds)
+    ? data.tagIds
+    : Array.isArray(article.tagIds)
+      ? article.tagIds
+      : Array.isArray(article.tagItems)
+        ? article.tagItems.map((item) => item.id).filter(Boolean)
+        : [];
+  const tagMeta = await resolveTagMetaByIds(nextTagIds, env);
   
   const updatedArticle = {
     ...article,
     ...data,
-    tags: tags,
-    tagItems: tagItems,
-    categoryName: data.categoryName || article.categoryName,
-    categorySlug: data.categorySlug || article.categorySlug,
+    tagIds: tagMeta.tagIds,
+    tags: tagMeta.tags,
+    tagItems: tagMeta.tagItems,
+    categoryName: data.categoryName || categoryMeta.categoryName || article.categoryName,
+    categorySlug: data.categorySlug || categoryMeta.categorySlug || article.categorySlug,
     excerpt: data.excerpt || article.excerpt || article.content.substring(0, 100) + '...',
     updateDate: new Date().toISOString()
   };
@@ -202,7 +281,12 @@ async function getCategories(env) {
   for (const id of index.categoryList) {
     const category = await env.KV.get(`category:${id}`);
     if (category) {
-      categories.push(category);
+      categories.push({
+        ...category,
+        slug: category.slug || toSlug(category.name || ''),
+        description: category.description || '',
+        articleCount: category.articleCount ?? category.count ?? 0,
+      });
     }
   }
   
@@ -215,7 +299,9 @@ async function createCategory(data, env) {
   const category = {
     id,
     name: data.name,
-    count: 0
+    slug: data.slug || toSlug(data.name || ''),
+    description: data.description || '',
+    articleCount: 0
   };
   
   await env.KV.put(`category:${id}`, category);
@@ -233,7 +319,10 @@ async function updateCategory(id, data, env) {
   
   const updatedCategory = {
     ...category,
-    ...data
+    ...data,
+    slug: data.slug || category.slug || toSlug(data.name || category.name || ''),
+    description: data.description ?? category.description ?? '',
+    articleCount: category.articleCount ?? category.count ?? 0,
   };
   
   await env.KV.put(`category:${id}`, updatedCategory);
@@ -260,7 +349,11 @@ async function getTags(env) {
   for (const id of index.tagList) {
     const tag = await env.KV.get(`tag:${id}`);
     if (tag) {
-      tags.push(tag);
+      tags.push({
+        ...tag,
+        slug: tag.slug || toSlug(tag.name || ''),
+        articleCount: tag.articleCount ?? tag.count ?? 0,
+      });
     }
   }
   
@@ -273,7 +366,8 @@ async function createTag(data, env) {
   const tag = {
     id,
     name: data.name,
-    count: 0
+    slug: data.slug || toSlug(data.name || ''),
+    articleCount: 0
   };
   
   await env.KV.put(`tag:${id}`, tag);
@@ -291,7 +385,9 @@ async function updateTag(id, data, env) {
   
   const updatedTag = {
     ...tag,
-    ...data
+    ...data,
+    slug: data.slug || tag.slug || toSlug(data.name || tag.name || ''),
+    articleCount: tag.articleCount ?? tag.count ?? 0,
   };
   
   await env.KV.put(`tag:${id}`, updatedTag);
@@ -492,9 +588,44 @@ const mockKV = {
   }
 };
 
-// 处理请求
-async function handleRequest(request, env) {
-  // 兼容不同的运行时环境
+function isProductionEnv(env) {
+  const mode = String(env?.ENV || env?.NODE_ENV || 'development').toLowerCase();
+  return mode === 'production';
+}
+
+function createKVAdapter(kvBinding) {
+  if (!kvBinding || kvBinding === mockKV) {
+    return kvBinding;
+  }
+
+  return {
+    get: async (key) => {
+      const rawValue = await kvBinding.get(key);
+
+      if (rawValue === null || rawValue === undefined) {
+        return null;
+      }
+
+      if (typeof rawValue !== 'string') {
+        return rawValue;
+      }
+
+      try {
+        return JSON.parse(rawValue);
+      } catch {
+        return rawValue;
+      }
+    },
+    put: async (key, value, options) => {
+      const normalizedValue = typeof value === 'string' ? value : JSON.stringify(value);
+      return kvBinding.put(key, normalizedValue, options);
+    },
+    delete: async (key) => kvBinding.delete(key),
+    list: async (options) => kvBinding.list(options),
+  };
+}
+
+function resolveRuntimeEnv(env) {
   const runtimeEnv = {
     ...(env || {}),
     ENV: env?.ENV || 'development',
@@ -502,8 +633,49 @@ async function handleRequest(request, env) {
     SECRET_KEY: env?.SECRET_KEY || 'test-secret-key',
     ADMIN_USERNAME: env?.ADMIN_USERNAME || 'admin',
     ADMIN_PASSWORD: env?.ADMIN_PASSWORD || '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
-    KV: env?.KV || mockKV
+    ALLOW_MOCK_KV: env?.ALLOW_MOCK_KV || 'false',
   };
+
+  if (env?.KV) {
+    runtimeEnv.KV = createKVAdapter(env.KV);
+    return runtimeEnv;
+  }
+
+  if (isProductionEnv(runtimeEnv)) {
+    throw new Error('生产环境缺少 KV 绑定（KV）。请检查 wrangler.toml 的 kv_namespaces 配置。');
+  }
+
+  if (String(runtimeEnv.ALLOW_MOCK_KV).toLowerCase() === 'true') {
+    console.warn('[KV] 当前使用内存 mockKV（仅开发环境）。重启服务后数据会丢失。');
+    runtimeEnv.KV = mockKV;
+    return runtimeEnv;
+  }
+
+  throw new Error(
+    '开发环境缺少 KV 绑定（KV）。请使用 wrangler dev 并配置 kv_namespaces；若仅临时调试可设置 ALLOW_MOCK_KV=true。',
+  );
+}
+
+function resolveRawEnv(env) {
+  if (env) {
+    return env;
+  }
+
+  // 兼容 Service Worker 语法下的全局绑定读取
+  return {
+    KV: globalThis.KV,
+    ENV: globalThis.ENV,
+    NODE_ENV: globalThis.NODE_ENV,
+    SECRET_KEY: globalThis.SECRET_KEY,
+    ADMIN_USERNAME: globalThis.ADMIN_USERNAME,
+    ADMIN_PASSWORD: globalThis.ADMIN_PASSWORD,
+    ALLOW_MOCK_KV: globalThis.ALLOW_MOCK_KV,
+  };
+}
+
+// 处理请求
+async function handleRequest(request, env) {
+  const rawEnv = resolveRawEnv(env);
   
   const url = new URL(request.url);
   const path = url.pathname;
@@ -520,6 +692,8 @@ async function handleRequest(request, env) {
       }
     });
   }
+
+  const runtimeEnv = resolveRuntimeEnv(rawEnv);
 
   // API 路由处理
   if (path.startsWith('/api/')) {
@@ -645,7 +819,7 @@ async function handleArticles(request, path, method, env) {
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        return new Response(JSON.stringify(article), {
+        return new Response(JSON.stringify(normalizeArticleTagIds(article)), {
           headers: { 'Content-Type': 'application/json' }
         });
       } else {
@@ -727,7 +901,7 @@ async function handlePublicArticles(request, path, method, env) {
           headers: { 'Content-Type': 'application/json' }
         });
       }
-      return new Response(JSON.stringify(article), {
+      return new Response(JSON.stringify(normalizeArticleTagIds(article)), {
         headers: { 'Content-Type': 'application/json' }
       });
   }
@@ -946,5 +1120,19 @@ async function handleStatic(request) {
 
 // 注册 fetch 事件监听器
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request, event.env));
+  event.respondWith(
+    handleRequest(event.request, event.env).catch((error) => {
+      const message = error instanceof Error ? error.message : 'Internal server error';
+      return new Response(JSON.stringify({ error: message }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Credentials': 'true',
+        },
+      });
+    }),
+  );
 });

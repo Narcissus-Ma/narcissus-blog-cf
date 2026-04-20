@@ -9,8 +9,8 @@
     "format": "prettier --write '**/*.{js,css,json,md}'",
     "build": "webpack",
     "build:watch": "webpack --watch",
-    "dev": "wrangler dev --port 8788",
-    "preview": "wrangler dev",
+    "dev": "wrangler dev --port 8788 --persist-to .wrangler/state",
+    "preview": "wrangler dev --persist-to .wrangler/state",
     "publish": "wrangler publish"
   },
   "author": "",

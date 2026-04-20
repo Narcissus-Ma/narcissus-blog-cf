@@ -8,7 +8,6 @@ import { AdminArticlesPage } from '@/pages/admin-articles-page/admin-articles-pa
 import { AdminCategoriesPage } from '@/pages/admin-categories-page/admin-categories-page';
 import { AdminDashboardPage } from '@/pages/admin-dashboard-page/admin-dashboard-page';
 import { AdminLoginPage } from '@/pages/admin-login-page/admin-login-page';
-import { AdminMediaPage } from '@/pages/admin-media-page/admin-media-page';
 import { AdminSettingsPage } from '@/pages/admin-settings-page/admin-settings-page';
 import { AdminTagsPage } from '@/pages/admin-tags-page/admin-tags-page';
 import { ArchivesPage } from '@/pages/archives-page/archives-page';
@@ -46,7 +45,6 @@ export function AppRouter() {
             <Route path="/admin/articles/:id/edit" element={<AdminArticleEditPage />} />
             <Route path="/admin/categories" element={<AdminCategoriesPage />} />
             <Route path="/admin/tags" element={<AdminTagsPage />} />
-            <Route path="/admin/media" element={<AdminMediaPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
           </Route>
         </Route>

@@ -5,7 +5,6 @@ import {
   FileTextOutlined,
   LogoutOutlined,
   MenuOutlined,
-  PictureOutlined,
   ReadOutlined,
   SettingOutlined,
   TagsOutlined,
@@ -33,7 +32,6 @@ const MENU_ITEMS: AdminMenuItem[] = [
   { label: '文章管理', path: '/admin/articles', icon: <FileTextOutlined /> },
   { label: '分类管理', path: '/admin/categories', icon: <AppstoreOutlined /> },
   { label: '标签管理', path: '/admin/tags', icon: <TagsOutlined /> },
-  { label: '媒体资源', path: '/admin/media', icon: <PictureOutlined /> },
   { label: '站点设置', path: '/admin/settings', icon: <SettingOutlined /> },
 ];
 

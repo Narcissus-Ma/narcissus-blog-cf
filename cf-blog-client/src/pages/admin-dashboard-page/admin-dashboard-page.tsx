@@ -1,7 +1,6 @@
 import {
   AppstoreOutlined,
   FileTextOutlined,
-  PictureOutlined,
   SettingOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
@@ -23,7 +22,6 @@ const QUICK_LINKS = [
     desc: '维护文章分类',
   },
   { title: '标签管理', path: '/admin/tags', icon: <TagsOutlined />, desc: '维护文章标签' },
-  { title: '媒体资源', path: '/admin/media', icon: <PictureOutlined />, desc: '上传与管理素材' },
   {
     title: '站点设置',
     path: '/admin/settings',
