@@ -270,27 +270,80 @@ async function deleteArticle(id, env) {
   await clearCache(env);
 }
 
+async function buildTaxonomyArticleCountMap(env, index, options) {
+  const includeDrafts = options?.includeDrafts ?? true;
+  const resolveIds = options?.resolveIds || (() => []);
+  const countMap = new Map();
+  const articleIds = index?.articleList || [];
+
+  for (const articleId of articleIds) {
+    const article = await env.KV.get(`article:${articleId}`);
+    if (!article) {
+      continue;
+    }
+
+    if (!includeDrafts && article.status !== 'published') {
+      continue;
+    }
+
+    const resolvedIds = resolveIds(article);
+    const uniqueIds = new Set(Array.isArray(resolvedIds) ? resolvedIds.filter(Boolean) : []);
+    for (const resolvedId of uniqueIds) {
+      const currentCount = countMap.get(resolvedId) || 0;
+      countMap.set(resolvedId, currentCount + 1);
+    }
+  }
+
+  return countMap;
+}
+
 // 分类相关函数
-async function getCategories(env) {
+async function getCategories(env, options = {}) {
+  const includeDrafts = options.includeDrafts ?? true;
   const index = await env.KV.get('system:index');
   if (!index || !index.categoryList) {
     return [];
   }
   
   const categories = [];
+  const categorySlugToIdMap = new Map();
+  const categoryNameToIdMap = new Map();
+
   for (const id of index.categoryList) {
     const category = await env.KV.get(`category:${id}`);
     if (category) {
+      const normalizedSlug = category.slug || toSlug(category.name || '');
+      categorySlugToIdMap.set(normalizedSlug, id);
+      if (category.name) {
+        categoryNameToIdMap.set(category.name, id);
+      }
       categories.push({
         ...category,
-        slug: category.slug || toSlug(category.name || ''),
+        slug: normalizedSlug,
         description: category.description || '',
-        articleCount: category.articleCount ?? category.count ?? 0,
+        articleCount: 0,
       });
     }
   }
-  
-  return categories;
+
+  const categoryIdCountMap = await buildTaxonomyArticleCountMap(env, index, {
+    includeDrafts,
+    resolveIds: (article) => {
+      let targetCategoryId = article.categoryId;
+      if (!targetCategoryId && article.categorySlug) {
+        targetCategoryId = categorySlugToIdMap.get(article.categorySlug);
+      }
+      if (!targetCategoryId && article.categoryName) {
+        targetCategoryId = categoryNameToIdMap.get(article.categoryName);
+      }
+      return targetCategoryId ? [targetCategoryId] : [];
+    },
+  });
+
+  return categories.map((category) => ({
+    ...category,
+    articleCount: categoryIdCountMap.get(category.id) || 0,
+  }));
 }
 
 async function createCategory(data, env) {
@@ -339,25 +392,69 @@ async function deleteCategory(id, env) {
 }
 
 // 标签相关函数
-async function getTags(env) {
+async function getTags(env, options = {}) {
+  const includeDrafts = options.includeDrafts ?? true;
   const index = await env.KV.get('system:index');
   if (!index || !index.tagList) {
     return [];
   }
   
   const tags = [];
+  const tagSlugToIdMap = new Map();
+  const tagNameToIdMap = new Map();
+
   for (const id of index.tagList) {
     const tag = await env.KV.get(`tag:${id}`);
     if (tag) {
+      const normalizedSlug = tag.slug || toSlug(tag.name || '');
+      tagSlugToIdMap.set(normalizedSlug, id);
+      if (tag.name) {
+        tagNameToIdMap.set(tag.name, id);
+      }
       tags.push({
         ...tag,
-        slug: tag.slug || toSlug(tag.name || ''),
-        articleCount: tag.articleCount ?? tag.count ?? 0,
+        slug: normalizedSlug,
+        articleCount: 0,
       });
     }
   }
-  
-  return tags;
+
+  const tagIdCountMap = await buildTaxonomyArticleCountMap(env, index, {
+    includeDrafts,
+    resolveIds: (article) => {
+      const tagIds = Array.isArray(article.tagIds)
+        ? article.tagIds
+        : Array.isArray(article.tagItems)
+          ? article.tagItems.map((item) => item.id).filter(Boolean)
+          : [];
+
+      const tagNames = Array.isArray(article.tags) ? article.tags : [];
+      const tagSlugs = Array.isArray(article.tagItems)
+        ? article.tagItems.map((item) => item.slug).filter(Boolean)
+        : [];
+
+      const resolvedTagIds = [...tagIds];
+      for (const tagSlug of tagSlugs) {
+        const mappedId = tagSlugToIdMap.get(tagSlug);
+        if (mappedId) {
+          resolvedTagIds.push(mappedId);
+        }
+      }
+      for (const tagName of tagNames) {
+        const mappedId = tagNameToIdMap.get(tagName);
+        if (mappedId) {
+          resolvedTagIds.push(mappedId);
+        }
+      }
+
+      return resolvedTagIds;
+    },
+  });
+
+  return tags.map((tag) => ({
+    ...tag,
+    articleCount: tagIdCountMap.get(tag.id) || 0,
+  }));
 }
 
 async function createTag(data, env) {
@@ -888,7 +985,12 @@ async function handlePublicArticles(request, path, method, env) {
       if (!slug) {
         const page = parseInt(url.searchParams.get('page') || '1');
         const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
-        const articles = await getPublicArticlesList(page, pageSize, env);
+        const categorySlug = url.searchParams.get('categorySlug') || '';
+        const tagSlug = url.searchParams.get('tagSlug') || '';
+        const articles = await getPublicArticlesList(page, pageSize, env, {
+          categorySlug,
+          tagSlug,
+        });
         return new Response(JSON.stringify(articles), {
           headers: { 'Content-Type': 'application/json' }
         });
@@ -913,28 +1015,46 @@ async function handlePublicArticles(request, path, method, env) {
 }
 
 // 获取公开文章列表
-async function getPublicArticlesList(page = 1, limit = 10, env) {
+async function getPublicArticlesList(page = 1, limit = 10, env, options = {}) {
+  const categorySlug = options.categorySlug || '';
+  const tagSlug = options.tagSlug || '';
   const start = (page - 1) * limit;
-  const end = start + limit;
   
   const index = await env.KV.get('system:index');
   if (!index || !index.articleList) {
     return { list: [], total: 0 };
   }
   
-  const articleIds = index.articleList.slice(start, end);
-  const articles = [];
+  const filteredArticles = [];
   
-  for (const id of articleIds) {
+  for (const id of index.articleList) {
     const article = await env.KV.get(`article:${id}`);
-    if (article && article.status === 'published') {
-      articles.push(article);
+    if (!article || article.status !== 'published') {
+      continue;
     }
+
+    if (categorySlug && article.categorySlug !== categorySlug) {
+      continue;
+    }
+
+    if (tagSlug) {
+      const articleTagSlugs = Array.isArray(article.tagItems)
+        ? article.tagItems.map((item) => item.slug).filter(Boolean)
+        : [];
+      if (!articleTagSlugs.includes(tagSlug)) {
+        continue;
+      }
+    }
+
+    filteredArticles.push(article);
   }
+
+  const total = filteredArticles.length;
+  const articleList = filteredArticles.slice(start, start + limit);
   
   return {
-    list: articles,
-    total: index.articleList.length,
+    list: articleList,
+    total,
     page,
     pageSize: limit
   };
@@ -943,10 +1063,11 @@ async function getPublicArticlesList(page = 1, limit = 10, env) {
 // 处理分类相关请求
 async function handleCategories(request, path, method, env) {
   const id = path.split('/').pop();
+  const isPublicEndpoint = path.includes('/public');
 
   switch (method) {
     case 'GET':
-      const categories = await getCategories(env);
+      const categories = await getCategories(env, { includeDrafts: !isPublicEndpoint });
       return new Response(JSON.stringify(categories), {
         headers: { 'Content-Type': 'application/json' }
       });
@@ -990,10 +1111,11 @@ async function handleCategories(request, path, method, env) {
 // 处理标签相关请求
 async function handleTags(request, path, method, env) {
   const id = path.split('/').pop();
+  const isPublicEndpoint = path.includes('/public');
 
   switch (method) {
     case 'GET':
-      const tags = await getTags(env);
+      const tags = await getTags(env, { includeDrafts: !isPublicEndpoint });
       return new Response(JSON.stringify(tags), {
         headers: { 'Content-Type': 'application/json' }
       });

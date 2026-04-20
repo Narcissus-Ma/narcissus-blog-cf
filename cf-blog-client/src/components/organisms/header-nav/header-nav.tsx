@@ -38,7 +38,15 @@ export function HeaderNav() {
             {navItems.map((item) => (
               <Link
                 key={item.path}
-                className={`${styles.menuItem} ${location.pathname === item.path ? styles.active : ''}`}
+                className={`${styles.menuItem} ${
+                  item.path === '/'
+                    ? location.pathname === '/'
+                      ? styles.active
+                      : ''
+                    : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+                      ? styles.active
+                      : ''
+                }`}
                 to={item.path}
               >
                 {item.name}
