@@ -21,6 +21,20 @@
 .randomCard {
   background: linear-gradient(120deg, rgba(53, 139, 255, 0.9), rgba(21, 198, 255, 0.9));
   color: #fff;
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.randomCard:hover {
+  transform: translateY(-2px);
+}
+
+.randomCard:disabled {
+  cursor: wait;
+  opacity: 0.8;
 }
 
 .randomTitle {

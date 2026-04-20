@@ -19,6 +19,10 @@ export function HomePage() {
     queryKey: ['public-articles', page, pageSize],
     queryFn: () => articlesService.getPublicList({ page, pageSize }),
   });
+  const { data: recentArticleResult } = useQuery({
+    queryKey: ['public-articles-recent-updated'],
+    queryFn: () => articlesService.getPublicList({ page: 1, pageSize: 50 }),
+  });
 
   const { data: categories = [] } = useQuery({
     queryKey: ['public-categories'],
@@ -36,6 +40,17 @@ export function HomePage() {
   );
 
   const featuredArticle = articleResult?.list[0];
+  const recentUpdatedArticles = useMemo(
+    () =>
+      [...(recentArticleResult?.list ?? [])]
+        .sort((a, b) => {
+          const timeA = new Date(a.updatedAt || a.publishedAt || a.createdAt).getTime();
+          const timeB = new Date(b.updatedAt || b.publishedAt || b.createdAt).getTime();
+          return timeB - timeA;
+        })
+        .slice(0, 3),
+    [recentArticleResult?.list],
+  );
 
   return (
     <div className={styles.container}>
@@ -78,7 +93,7 @@ export function HomePage() {
             />
           </div>
         </section>
-        <SidebarPanel categories={categories} tags={tags} />
+        <SidebarPanel categories={categories} tags={tags} recentUpdatedArticles={recentUpdatedArticles} />
       </div>
     </div>
   );

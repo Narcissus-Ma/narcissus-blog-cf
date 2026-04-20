@@ -981,6 +981,20 @@ async function handlePublicArticles(request, path, method, env) {
 
   switch (method) {
     case 'GET':
+      if (slug === 'random') {
+        const randomArticle = await getRandomPublicArticle(env);
+        if (!randomArticle) {
+          return new Response(JSON.stringify({ error: 'No published article found' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify(randomArticle), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
       // 获取公开文章列表 /api/articles/public
       if (!slug) {
         const page = parseInt(url.searchParams.get('page') || '1');
@@ -1049,6 +1063,12 @@ async function getPublicArticlesList(page = 1, limit = 10, env, options = {}) {
     filteredArticles.push(article);
   }
 
+  filteredArticles.sort((a, b) => {
+    const timeA = new Date(a.publishedAt || a.createdAt || a.updateDate || a.createDate || 0).getTime();
+    const timeB = new Date(b.publishedAt || b.createdAt || b.updateDate || b.createDate || 0).getTime();
+    return timeB - timeA;
+  });
+
   const total = filteredArticles.length;
   const articleList = filteredArticles.slice(start, start + limit);
   
@@ -1057,6 +1077,30 @@ async function getPublicArticlesList(page = 1, limit = 10, env, options = {}) {
     total,
     page,
     pageSize: limit
+  };
+}
+
+async function getRandomPublicArticle(env) {
+  const index = await env.KV.get('system:index');
+  const articleIds = index?.articleList || [];
+  const publishedArticles = [];
+
+  for (const id of articleIds) {
+    const article = await env.KV.get(`article:${id}`);
+    if (article && article.status === 'published') {
+      publishedArticles.push(article);
+    }
+  }
+
+  if (publishedArticles.length === 0) {
+    return null;
+  }
+
+  const randomIndex = Math.floor(Math.random() * publishedArticles.length);
+  const randomArticle = publishedArticles[randomIndex];
+  return {
+    title: randomArticle.title,
+    slug: randomArticle.slug,
   };
 }
 

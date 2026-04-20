@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import { articlesService } from '@/features/articles/services/articles-service';
@@ -48,6 +49,8 @@ export function useHeaderActions() {
       const result = await articlesService.getRandomPublicArticle();
 
       navigate(`/post/${result.slug}`);
+    } catch {
+      message.warning('暂时没有可跳转的已发布文章');
     } finally {
       setIsRandomLoading(false);
     }
