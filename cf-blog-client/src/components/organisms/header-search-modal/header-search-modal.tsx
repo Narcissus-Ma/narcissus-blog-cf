@@ -26,8 +26,14 @@ export function HeaderSearchModal({
   const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
 
   useEffect(() => {
+    const trimmedKeyword = keyword.trim();
+    if (!trimmedKeyword) {
+      setDebouncedKeyword('');
+      return;
+    }
+
     const timer = window.setTimeout(() => {
-      setDebouncedKeyword(keyword.trim());
+      setDebouncedKeyword(trimmedKeyword);
     }, 300);
 
     return () => {
@@ -80,6 +86,41 @@ export function HeaderSearchModal({
   const shouldShowResults = debouncedKeyword.length >= 2;
   const resultList = data?.list ?? [];
 
+  const renderHighlightedTitle = (title: string): (string | JSX.Element)[] => {
+    const normalizedKeyword = debouncedKeyword.trim();
+    if (!normalizedKeyword) {
+      return [title];
+    }
+
+    const escapedKeyword = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matchPattern = new RegExp(`(${escapedKeyword})`, 'ig');
+    const parts = title.split(matchPattern);
+
+    return parts
+      .filter((part) => part.length > 0)
+      .map((part, index) =>
+        part.toLowerCase() === normalizedKeyword.toLowerCase() ? (
+          <mark key={`${title}-${index}`} className={styles.highlight}>
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      );
+  };
+
+  const getArticleDateText = (item: {
+    publishedAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+    createDate?: string;
+    updateDate?: string;
+  }): string => {
+    const dateValue =
+      item.publishedAt || item.createdAt || item.updatedAt || item.createDate || item.updateDate || '';
+    return dateValue ? String(dateValue).slice(0, 10) : '未知日期';
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div
@@ -129,9 +170,9 @@ export function HeaderSearchModal({
                   to={`/post/${item.slug}`}
                   onClick={onClose}
                 >
-                  <span className={styles.resultTitle}>{item.title}</span>
+                  <span className={styles.resultTitle}>{renderHighlightedTitle(item.title)}</span>
                   <span className={styles.resultMeta}>
-                    {item.categoryName || '未分类'} · {item.publishedAt?.slice(0, 10) ?? item.createdAt.slice(0, 10)}
+                    {item.categoryName || '未分类'} · {getArticleDateText(item)}
                   </span>
                   <span className={styles.resultExcerpt}>{item.excerpt || '这篇文章暂无摘要。'}</span>
                 </Link>

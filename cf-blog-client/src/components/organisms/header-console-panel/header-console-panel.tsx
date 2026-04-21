@@ -34,6 +34,18 @@ export function HeaderConsolePanel({
     return null;
   }
 
+  const getArticleDateText = (item: {
+    publishedAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+    createDate?: string;
+    updateDate?: string;
+  }): string => {
+    const dateValue =
+      item.publishedAt || item.createdAt || item.updatedAt || item.createDate || item.updateDate || '';
+    return dateValue ? String(dateValue).slice(0, 10) : '未知日期';
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <section
@@ -91,7 +103,7 @@ export function HeaderConsolePanel({
                 <Link key={item.id} className={styles.postLink} to={`/post/${item.slug}`} onClick={onClose}>
                   <span className={styles.postTitle}>{item.title}</span>
                   <span className={styles.postMeta}>
-                    {item.categoryName || '未分类'} · {item.publishedAt?.slice(0, 10) ?? item.createdAt.slice(0, 10)}
+                    {item.categoryName || '未分类'} · {getArticleDateText(item)}
                   </span>
                 </Link>
               ))}

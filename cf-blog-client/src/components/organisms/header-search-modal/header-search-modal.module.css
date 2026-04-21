@@ -135,6 +135,13 @@
   font-weight: 700;
 }
 
+.highlight {
+  padding: 0 2px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #f59e0b 38%, transparent);
+  color: inherit;
+}
+
 .resultMeta,
 .resultExcerpt {
   color: inherit;

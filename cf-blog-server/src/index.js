@@ -620,6 +620,7 @@ async function clearAllData(env) {
 
 async function rebuildIndexes(env) {
   const articleList = [];
+  const articleTitleIndex = [];
   const categoryList = [];
   const tagList = [];
 
@@ -632,6 +633,15 @@ async function rebuildIndexes(env) {
     const article = await env.KV.get(key.name);
     if (article) {
       articleList.push(article.id);
+      articleTitleIndex.push({
+        id: article.id,
+        title: article.title || '',
+        titleLower: String(article.title || '').toLowerCase(),
+        status: article.status || 'draft',
+        publishedAt: article.publishedAt || '',
+        updatedAt: article.updatedAt || article.updateDate || '',
+        createdAt: article.createdAt || article.createDate || '',
+      });
     }
   }
 
@@ -653,6 +663,7 @@ async function rebuildIndexes(env) {
 
   await env.KV.put('system:index', {
     articleList,
+    articleTitleIndex,
     categoryList,
     tagList
   });
@@ -981,6 +992,16 @@ async function handlePublicArticles(request, path, method, env) {
 
   switch (method) {
     case 'GET':
+      if (slug === 'search') {
+        const keyword = url.searchParams.get('keyword') || '';
+        const page = parseInt(url.searchParams.get('page') || '1');
+        const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+        const result = await searchPublicArticlesByTitle(keyword, page, pageSize, env);
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
       if (slug === 'random') {
         const randomArticle = await getRandomPublicArticle(env);
         if (!randomArticle) {
@@ -1077,6 +1098,68 @@ async function getPublicArticlesList(page = 1, limit = 10, env, options = {}) {
     total,
     page,
     pageSize: limit
+  };
+}
+
+async function searchPublicArticlesByTitle(keyword, page = 1, limit = 10, env) {
+  const normalizedKeyword = String(keyword || '').trim().toLowerCase();
+  if (!normalizedKeyword) {
+    return { list: [], total: 0, page, pageSize: limit };
+  }
+
+  const index = await env.KV.get('system:index');
+  if (!index || !index.articleList) {
+    return { list: [], total: 0, page, pageSize: limit };
+  }
+
+  const articleTitleIndex = Array.isArray(index.articleTitleIndex) ? index.articleTitleIndex : [];
+  let matchedIds = [];
+
+  if (articleTitleIndex.length > 0) {
+    matchedIds = articleTitleIndex
+      .filter((item) => {
+        if (!item || item.status !== 'published') {
+          return false;
+        }
+        const titleLower = String(item.titleLower || item.title || '').toLowerCase();
+        return titleLower.includes(normalizedKeyword);
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
+        const timeB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+        return timeB - timeA;
+      })
+      .map((item) => item.id);
+  } else {
+    // 兼容旧索引数据：无标题索引时走全量回退扫描。
+    for (const id of index.articleList) {
+      const article = await env.KV.get(`article:${id}`);
+      if (!article || article.status !== 'published') {
+        continue;
+      }
+      if (String(article.title || '').toLowerCase().includes(normalizedKeyword)) {
+        matchedIds.push(id);
+      }
+    }
+  }
+
+  const total = matchedIds.length;
+  const start = (page - 1) * limit;
+  const pagedIds = matchedIds.slice(start, start + limit);
+  const list = [];
+
+  for (const id of pagedIds) {
+    const article = await env.KV.get(`article:${id}`);
+    if (article && article.status === 'published') {
+      list.push(article);
+    }
+  }
+
+  return {
+    list,
+    total,
+    page,
+    pageSize: limit,
   };
 }
 

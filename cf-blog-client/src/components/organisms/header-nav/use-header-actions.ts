@@ -17,6 +17,7 @@ export function useHeaderActions() {
 
   const closeSearch = () => {
     setIsSearchOpen(false);
+    setKeyword('');
   };
 
   const openConsole = () => {
