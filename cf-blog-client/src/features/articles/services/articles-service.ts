@@ -25,6 +25,15 @@ export interface PublicSearchQuery {
   pageSize?: number;
 }
 
+export interface ArticleRecommendation {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverUrl: string;
+  updatedAt: string;
+}
+
 export interface AdminArticleDetail extends ArticleDetail {
   categoryId: string | null;
   tagIds: string[];
@@ -81,6 +90,12 @@ export const articlesService = {
     this.markAsRead(article.id);
     
     return article;
+  },
+  async getRecommendations(slug: string, size = 3): Promise<ArticleRecommendation[]> {
+    const response = await apiClient.get(`/articles/public/${slug}/recommendations`, {
+      params: { size },
+    });
+    return unwrapResponse<ArticleRecommendation[]>(response);
   },
   // 标记文章为已读
   markAsRead(articleId: string): void {

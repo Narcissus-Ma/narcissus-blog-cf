@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { Link, useParams } from 'react-router-dom';
@@ -14,6 +14,23 @@ interface TocItem {
   id: string;
   level: number;
   text: string;
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) {
+    return '未知时间';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '未知时间';
+  }
+
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
 }
 
 function toHeadingSlug(text: string, index: number) {
@@ -49,10 +66,18 @@ function extractToc(content: string) {
 export function PostDetailPage() {
   const { slug = '' } = useParams();
   const [copied, setCopied] = useState(false);
+  const [activeTocId, setActiveTocId] = useState<string>('');
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['post-detail', slug],
     queryFn: () => articlesService.getPublicDetail(slug),
+    enabled: Boolean(slug),
+  });
+  const { data: recommendationList = [] } = useQuery({
+    queryKey: ['post-recommendations', slug],
+    queryFn: () => articlesService.getRecommendations(slug, 3),
     enabled: Boolean(slug),
   });
 
@@ -83,6 +108,85 @@ export function PostDetailPage() {
 
     return components;
   }, [toc]);
+
+  useEffect(() => {
+    if (toc.length === 0) {
+      setActiveTocId('');
+      return;
+    }
+
+    setActiveTocId(toc[0].id);
+  }, [toc]);
+
+  useEffect(() => {
+    if (toc.length === 0) {
+      return;
+    }
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const headingElements = toc
+      .map((item) => document.getElementById(item.id))
+      .filter((item): item is HTMLElement => Boolean(item));
+
+    if (headingElements.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visibleEntries.length > 0) {
+          const topVisibleHeading = visibleEntries[0].target.id;
+          setActiveTocId(topVisibleHeading);
+        }
+      },
+      {
+        rootMargin: '-80px 0px -60% 0px',
+        threshold: [0.2, 0.5, 1],
+      },
+    );
+
+    headingElements.forEach((item) => observer.observe(item));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [toc, data?.content]);
+
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const articleElement = document.querySelector<HTMLElement>(`.${styles.article}`);
+      if (!articleElement) {
+        return;
+      }
+
+      const rect = articleElement.getBoundingClientRect();
+      const articleHeight = articleElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const totalScrollableDistance = Math.max(articleHeight - viewportHeight, 1);
+      const passedDistance = Math.min(
+        Math.max(window.scrollY - (window.scrollY + rect.top), 0),
+        totalScrollableDistance,
+      );
+
+      const nextProgress = Math.round((passedDistance / totalScrollableDistance) * 100);
+      setReadingProgress(Math.max(0, Math.min(100, nextProgress)));
+    };
+
+    updateReadingProgress();
+    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+    window.addEventListener('resize', updateReadingProgress);
+
+    return () => {
+      window.removeEventListener('scroll', updateReadingProgress);
+      window.removeEventListener('resize', updateReadingProgress);
+    };
+  }, [data?.id]);
 
   if (isLoading) {
     return <div className={styles.state}>文章加载中...</div>;
@@ -126,6 +230,10 @@ export function PostDetailPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>{data.title}</h1>
           <div className={styles.meta}>
+            <span>发布于：{formatDateTime(data.publishedAt || data.createdAt)}</span>
+            <span>更新于：{formatDateTime(data.updatedAt)}</span>
+          </div>
+          <div className={styles.meta}>
             <span>分类：</span>
             {data.categorySlug ? (
               <Link className={styles.metaLink} to={`/categories/${data.categorySlug}`}>
@@ -163,6 +271,22 @@ export function PostDetailPage() {
             </button>
             <span className={styles.shareState}>{copied ? '链接已复制' : '可直接分享给朋友'}</span>
           </div>
+          <section className={styles.recommendWrap}>
+            <h2 className={styles.recommendTitle}>推荐阅读</h2>
+            {recommendationList.length === 0 ? (
+              <p className={styles.recommendEmpty}>当前暂无推荐文章。</p>
+            ) : (
+              <ul className={styles.recommendList}>
+                {recommendationList.map((item) => (
+                  <li key={item.id}>
+                    <Link className={styles.recommendLink} to={`/post/${item.slug}`}>
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
           <div className={styles.neighbors}>
             {data.prevPost ? (
               <Link className={styles.neighborLink} to={`/post/${data.prevPost.slug}`}>
@@ -182,16 +306,32 @@ export function PostDetailPage() {
         </footer>
       </article>
 
+      <button
+        className={styles.mobileTocButton}
+        type="button"
+        onClick={() => setIsMobileTocOpen((prev) => !prev)}
+      >
+        目录（{readingProgress}%）
+      </button>
+
       <aside className={styles.tocPanel}>
-        <h2 className={styles.tocTitle}>目录</h2>
+        <div className={styles.tocHead}>
+          <h2 className={styles.tocTitle}>目录</h2>
+          <span className={styles.tocProgress}>阅读进度 {readingProgress}%</span>
+        </div>
         {toc.length === 0 ? <p className={styles.tocEmpty}>当前文章没有可用目录。</p> : null}
-        <ul className={styles.tocList}>
+        <ul className={`${styles.tocList} ${isMobileTocOpen ? styles.tocListOpen : ''}`}>
           {toc.map((item) => (
             <li key={item.id}>
               <a
-                className={styles.tocLink}
+                className={`${styles.tocLink} ${activeTocId === item.id ? styles.tocLinkActive : ''}`}
                 href={`#${item.id}`}
                 style={{ paddingLeft: `${(item.level - 1) * 10}px` }}
+                aria-current={activeTocId === item.id ? 'true' : undefined}
+                onClick={() => {
+                  setActiveTocId(item.id);
+                  setIsMobileTocOpen(false);
+                }}
               >
                 {item.text}
               </a>

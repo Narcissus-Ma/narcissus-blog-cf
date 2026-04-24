@@ -989,9 +989,18 @@ async function handlePublicArticles(request, path, method, env) {
   // path: /api/articles/public/[slug]
   // pathParts: ['', 'api', 'articles', 'public', slug]
   const slug = pathParts[4];
+  const action = pathParts[5];
 
   switch (method) {
     case 'GET':
+      if (action === 'recommendations' && slug) {
+        const size = Math.max(parseInt(url.searchParams.get('size') || '3', 10), 1);
+        const recommendations = await getPublicArticleRecommendations(slug, size, env);
+        return new Response(JSON.stringify(recommendations), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
       if (slug === 'search') {
         const keyword = url.searchParams.get('keyword') || '';
         const page = parseInt(url.searchParams.get('page') || '1');
@@ -1038,7 +1047,13 @@ async function handlePublicArticles(request, path, method, env) {
           headers: { 'Content-Type': 'application/json' }
         });
       }
-      return new Response(JSON.stringify(normalizeArticleTagIds(article)), {
+
+      const normalizedArticle = normalizeArticleTagIds(article);
+      const { prevPost, nextPost } = await getAdjacentPublishedPosts(normalizedArticle, env);
+      normalizedArticle.prevPost = prevPost;
+      normalizedArticle.nextPost = nextPost;
+
+      return new Response(JSON.stringify(normalizedArticle), {
         headers: { 'Content-Type': 'application/json' }
       });
   }
@@ -1099,6 +1114,114 @@ async function getPublicArticlesList(page = 1, limit = 10, env, options = {}) {
     page,
     pageSize: limit
   };
+}
+
+async function getPublishedPublicArticles(env) {
+  const index = await env.KV.get('system:index');
+  if (!index || !Array.isArray(index.articleList)) {
+    return [];
+  }
+
+  const publishedArticles = [];
+
+  for (const id of index.articleList) {
+    const article = await env.KV.get(`article:${id}`);
+    if (article && article.status === 'published') {
+      publishedArticles.push(normalizeArticleTagIds(article));
+    }
+  }
+
+  publishedArticles.sort((a, b) => {
+    const timeA = new Date(a.publishedAt || a.createdAt || a.updateDate || a.createDate || 0).getTime();
+    const timeB = new Date(b.publishedAt || b.createdAt || b.updateDate || b.createDate || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return publishedArticles;
+}
+
+async function getAdjacentPublishedPosts(article, env) {
+  const publishedArticles = await getPublishedPublicArticles(env);
+  const currentIndex = publishedArticles.findIndex((item) => item.slug === article.slug);
+
+  if (currentIndex < 0) {
+    return {
+      prevPost: null,
+      nextPost: null,
+    };
+  }
+
+  const prevArticle = publishedArticles[currentIndex + 1];
+  const nextArticle = publishedArticles[currentIndex - 1];
+
+  return {
+    prevPost: prevArticle
+      ? {
+          title: prevArticle.title,
+          slug: prevArticle.slug,
+        }
+      : null,
+    nextPost: nextArticle
+      ? {
+          title: nextArticle.title,
+          slug: nextArticle.slug,
+        }
+      : null,
+  };
+}
+
+async function getPublicArticleRecommendations(slug, size, env) {
+  const publishedArticles = await getPublishedPublicArticles(env);
+  const currentArticle = publishedArticles.find((item) => item.slug === slug);
+  if (!currentArticle) {
+    return [];
+  }
+
+  const currentTagSet = new Set(
+    Array.isArray(currentArticle.tagItems)
+      ? currentArticle.tagItems.map((item) => item.slug).filter(Boolean)
+      : []
+  );
+
+  const scoredArticles = publishedArticles
+    .filter((item) => item.slug !== slug)
+    .map((item) => {
+      const articleTags = Array.isArray(item.tagItems)
+        ? item.tagItems.map((tagItem) => tagItem.slug).filter(Boolean)
+        : [];
+      const overlapCount = articleTags.reduce((count, tagSlug) => {
+        return currentTagSet.has(tagSlug) ? count + 1 : count;
+      }, 0);
+      const sameCategory = item.categorySlug && currentArticle.categorySlug
+        ? item.categorySlug === currentArticle.categorySlug
+        : false;
+
+      return {
+        item,
+        score: overlapCount * 10 + (sameCategory ? 5 : 0),
+        timestamp: new Date(
+          item.updatedAt || item.publishedAt || item.createdAt || item.updateDate || item.createDate || 0
+        ).getTime(),
+      };
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+
+      return b.timestamp - a.timestamp;
+    })
+    .slice(0, size)
+    .map(({ item }) => ({
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      excerpt: item.excerpt || '',
+      coverUrl: item.coverUrl || '',
+      updatedAt: item.updatedAt || item.updateDate || '',
+    }));
+
+  return scoredArticles;
 }
 
 async function searchPublicArticlesByTitle(keyword, page = 1, limit = 10, env) {

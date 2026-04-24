@@ -114,6 +114,7 @@
 
 .tocPanel {
   position: sticky;
+  position: -webkit-sticky;
   top: 74px;
   width: 260px;
   max-height: calc(100vh - 90px);
@@ -125,9 +126,22 @@
   padding: 14px;
 }
 
+.tocHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .tocTitle {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 1.05rem;
+}
+
+.tocProgress {
+  color: var(--second-text);
+  font-size: 0.8rem;
 }
 
 .tocEmpty {
@@ -151,8 +165,51 @@
   text-decoration: none;
 }
 
+.tocLinkActive {
+  color: var(--main-color);
+  font-weight: 600;
+}
+
 .tocLink:hover {
   color: var(--main-color);
+}
+
+.recommendWrap {
+  border-top: 1px dashed var(--card-border);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.recommendTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.recommendEmpty {
+  margin: 10px 0 0;
+  color: var(--second-text);
+}
+
+.recommendList {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.recommendList li + li {
+  margin-top: 8px;
+}
+
+.recommendLink {
+  color: var(--font-color);
+  text-decoration: none;
+}
+
+.recommendLink:hover {
+  color: var(--main-color);
+}
+
+.mobileTocButton {
+  display: none;
 }
 
 .state {
@@ -167,9 +224,29 @@
     flex-direction: column;
   }
 
+  .mobileTocButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    background: var(--card-bg);
+    padding: 8px 12px;
+    color: var(--font-color);
+    cursor: pointer;
+  }
+
   .tocPanel {
     position: static;
     width: 100%;
     max-height: none;
+  }
+
+  .tocList {
+    display: none;
+  }
+
+  .tocListOpen {
+    display: block;
   }
 }
