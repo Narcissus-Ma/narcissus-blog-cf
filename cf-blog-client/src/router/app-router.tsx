@@ -1,4 +1,4 @@
-import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
 import { AdminLayout } from '@/layouts/admin-layout/admin-layout';
 import { BlogLayout } from '@/layouts/blog-layout/blog-layout';
