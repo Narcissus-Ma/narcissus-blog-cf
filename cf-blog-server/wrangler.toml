@@ -1,16 +1,19 @@
 name = "narcissus-blog"
-account_id = "test-account"
+# account_id = "test-account"  # 使用 wrangler login 后可省略此行
 workers_dev = true
 compatibility_date = "2026-04-17"
 main = "src/index.js"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "test-kv-namespace"
-preview_id = "test-kv-namespace"
+id = "8d739401a97443cc8a7d8c62551a8ba1"
+preview_id = "8d739401a97443cc8a7d8c62551a8ba1"
 
 [env.development]
-env = "development"
+[[env.development.kv_namespaces]]
+binding = "KV"
+id = "8d739401a97443cc8a7d8c62551a8ba1"
+preview_id = "8d739401a97443cc8a7d8c62551a8ba1"
 
 [env.development.vars]
 SECRET_KEY = "test-secret-key"
@@ -18,9 +21,13 @@ ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
 
 [env.production]
-env = "production"
+[[env.production.kv_namespaces]]
+binding = "KV"
+id = "8d739401a97443cc8a7d8c62551a8ba1"
+preview_id = "8d739401a97443cc8a7d8c62551a8ba1"
 
-[env.production.vars]
-SECRET_KEY = "production-secret-key"
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
+# 生产环境敏感变量通过 wrangler secret 管理，不在此配置
+# SECRET_KEY、ADMIN_USERNAME、ADMIN_PASSWORD 已通过以下命令设置：
+# wrangler secret put SECRET_KEY --env production
+# wrangler secret put ADMIN_USERNAME --env production
+# wrangler secret put ADMIN_PASSWORD --env production
