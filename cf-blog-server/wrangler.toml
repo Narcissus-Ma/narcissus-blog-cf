@@ -26,8 +26,12 @@ binding = "KV"
 id = "8d739401a97443cc8a7d8c62551a8ba1"
 preview_id = "8d739401a97443cc8a7d8c62551a8ba1"
 
-# 生产环境敏感变量通过 wrangler secret 管理，不在此配置
-# SECRET_KEY、ADMIN_USERNAME、ADMIN_PASSWORD 已通过以下命令设置：
+[env.production.vars]
+ENV = "production"
+NODE_ENV = "production"
+
+# 敏感变量通过 wrangler secret 管理，不在此配置
+# 使用以下命令设置：
 # wrangler secret put SECRET_KEY --env production
 # wrangler secret put ADMIN_USERNAME --env production
 # wrangler secret put ADMIN_PASSWORD --env production
