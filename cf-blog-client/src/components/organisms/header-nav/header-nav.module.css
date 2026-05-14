@@ -71,6 +71,12 @@
   padding: 0 14px;
 }
 
+.iconOnlyButton {
+  padding: 0;
+  width: 34px;
+  height: 34px;
+}
+
 .iconButton {
   width: 34px;
   height: 34px;

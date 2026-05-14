@@ -8,6 +8,7 @@ import { HeaderConsolePanel } from '@/components/organisms/header-console-panel/
 import { HeaderSearchModal } from '@/components/organisms/header-search-modal/header-search-modal';
 import { useSiteStore } from '@/stores/site-store';
 import { useThemeStore } from '@/stores/theme-store';
+import { Tooltip } from 'antd';
 
 export function HeaderNav() {
   const location = useLocation();
@@ -54,26 +55,29 @@ export function HeaderNav() {
             ))}
           </nav>
           <div className={styles.actions}>
-            <button
-              aria-label="随机文章"
-              className={styles.actionButton}
-              disabled={isRandomLoading}
-              type="button"
-              onClick={() => {
-                void goRandomPost();
-              }}
-            >
-              <RetweetOutlined />
-              <span>随机文章</span>
-            </button>
-            <button aria-label="搜索" className={styles.actionButton} type="button" onClick={openSearch}>
-              <SearchOutlined />
-              <span>搜索</span>
-            </button>
-            <button aria-label="中控台" className={styles.actionButton} type="button" onClick={openConsole}>
-              <AppstoreOutlined />
-              <span>中控台</span>
-            </button>
+            <Tooltip title="随机文章" placement="bottom">
+              <button
+                aria-label="随机文章"
+                className={`${styles.actionButton} ${styles.iconOnlyButton}`}
+                disabled={isRandomLoading}
+                type="button"
+                onClick={() => {
+                  void goRandomPost();
+                }}
+              >
+                <RetweetOutlined />
+              </button>
+            </Tooltip>
+            <Tooltip title="搜索" placement="bottom">
+              <button aria-label="搜索" className={`${styles.actionButton} ${styles.iconOnlyButton}`} type="button" onClick={openSearch}>
+                <SearchOutlined />
+              </button>
+            </Tooltip>
+            <Tooltip title="中控台" placement="bottom">
+              <button aria-label="中控台" className={`${styles.actionButton} ${styles.iconOnlyButton}`} type="button" onClick={openConsole}>
+                <AppstoreOutlined />
+              </button>
+            </Tooltip>
             <button aria-label="切换主题" className={styles.iconButton} type="button" onClick={toggleTheme}>
               <BulbOutlined />
             </button>
